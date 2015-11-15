@@ -21,10 +21,12 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.github.kaklakariada:fritzbox-java-api:0.1+') {
+    compile('com.github.kaklakariada:fritzbox-java-api:0.1.1+') {
         exclude group:'stax'
         exclude group:'xpp3'
     }
+    compile 'org.slf4j:slf4j-android:1.7.13'
+
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.android.support:design:23.1.0'

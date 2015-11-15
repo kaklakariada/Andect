@@ -3,6 +3,8 @@ package com.github.kaklakariada.andect;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -237,11 +239,12 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
             showProgress(false);
 
             if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                finishWithResult(fritzBoxSession.getSid());
+                return;
             }
+            mUsernameView.setError(getString(R.string.error_incorrect_username_password));
+            mPasswordView.setError(getString(R.string.error_incorrect_username_password));
+            mPasswordView.requestFocus();
         }
 
         @Override
@@ -249,6 +252,18 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
             mAuthTask = null;
             showProgress(false);
         }
+    }
+
+    private void finishWithResult(String sid) {
+        Intent data = new Intent();
+        data.putExtra("sid", sid);
+        data.putExtra("url", mUrlView.getText().toString());
+        if (getParent() == null) {
+            setResult(Activity.RESULT_OK, data);
+        } else {
+            getParent().setResult(Activity.RESULT_OK, data);
+        }
+        finish();
     }
 }
 

@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -60,10 +61,15 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
         // Set up the login form.
+
+        SharedPreferences preferences = getSharedPreferences("credentials", MODE_PRIVATE);
+
         mUrlView = (EditText) findViewById(R.id.fritzbox_url);
-        mUrlView.setText("http://fritz.box");
+        mUrlView.setText(preferences.getString("url","http://fritz.box"));
         mUsernameView = (EditText) findViewById(R.id.username);
+        mUsernameView.setText(preferences.getString("username", ""));
         mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView.setText(preferences.getString("password", ""));
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -255,10 +261,14 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
     }
 
     private void gotoDeviceList(String sid) {
-        Intent intent = new Intent(this, DeviceListActivity.class);
-        intent.putExtra("sid", sid);
-        intent.putExtra("url", mUrlView.getText().toString());
-        startActivity(intent);
+        SharedPreferences.Editor editor = getSharedPreferences("credentials", MODE_PRIVATE).edit();
+        editor.putString("url", mUrlView.getText().toString());
+        editor.putString("username", mUsernameView.getText().toString());
+        editor.putString("password", mPasswordView.getText().toString());
+        editor.putString("sid", sid);
+        editor.commit();
+
+        startActivity(new Intent(this, DeviceListActivity.class));
     }
 }
 

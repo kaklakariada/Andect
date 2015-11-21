@@ -2,6 +2,7 @@ package com.github.kaklakariada.andect;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -49,23 +50,26 @@ public class DeviceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_list);
 
+        SharedPreferences preferences = getSharedPreferences("credentials", MODE_PRIVATE);
+
+        String baseUrl = preferences.getString("url", null);
+        String sid = preferences.getString("sid", null);
+
+        assert baseUrl != null;
+        assert sid != null;
+
+        LOG.info("Using base url {} and sid {}", baseUrl, sid);
+        session = new FritzBoxSession(new HttpTemplate(baseUrl), sid);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         viewAdapter = new SimpleItemRecyclerViewAdapter();
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.device_list);
         assert recyclerView != null;
         recyclerView.setAdapter(viewAdapter);
+        new GetDeviceListTask().execute();
     }
 
     public class SimpleItemRecyclerViewAdapter
@@ -135,22 +139,20 @@ public class DeviceListActivity extends AppCompatActivity {
 
         @Override
         protected DeviceList doInBackground(Void... params) {
-            if (session == null) {
-                String baseUrl = getIntent().getStringExtra("url");
-                String sid = getIntent().getStringExtra("sid");
-                session = new FritzBoxSession(new HttpTemplate(baseUrl), sid);
-            }
+            LOG.info("Fetching devices...");
             return new HomeAutomation(session).getDeviceListInfos();
         }
 
         @Override
         protected void onPostExecute(final DeviceList devices) {
             //showProgress(false);
+            LOG.info("Found {} devices", devices.getDevices().size());
             viewAdapter.updateDeviceList(devices);
         }
 
         @Override
         protected void onCancelled() {
+            LOG.info("Cancelled");
             //showProgress(false);
         }
     }

@@ -239,7 +239,7 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
             showProgress(false);
 
             if (success) {
-                finishWithResult(fritzBoxSession.getSid());
+                gotoDeviceList(fritzBoxSession.getSid());
                 return;
             }
             mUsernameView.setError(getString(R.string.error_incorrect_username_password));
@@ -254,16 +254,11 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
         }
     }
 
-    private void finishWithResult(String sid) {
-        Intent data = new Intent();
-        data.putExtra("sid", sid);
-        data.putExtra("url", mUrlView.getText().toString());
-        if (getParent() == null) {
-            setResult(Activity.RESULT_OK, data);
-        } else {
-            getParent().setResult(Activity.RESULT_OK, data);
-        }
-        finish();
+    private void gotoDeviceList(String sid) {
+        Intent intent = new Intent(this, DeviceListActivity.class);
+        intent.putExtra("sid", sid);
+        intent.putExtra("url", mUrlView.getText().toString());
+        startActivity(intent);
     }
 }
 

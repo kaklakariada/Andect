@@ -54,7 +54,12 @@ public class FritzBoxService {
     }
 
     public DeviceList getDeviceList() {
-        return new HomeAutomation(getAuthenticatedFritzboxSession()).getDeviceListInfos();
+        return getHomeAutomation().getDeviceListInfos();
+    }
+
+    @NonNull
+    private HomeAutomation getHomeAutomation() {
+        return new HomeAutomation(getAuthenticatedFritzboxSession());
     }
 
     @NonNull
@@ -64,5 +69,13 @@ public class FritzBoxService {
 
     public Device getDevice(String identifer) {
         return getDeviceList().getDeviceByIdentifier(identifer);
+    }
+
+    public void switchState(Device device, boolean on) {
+        getHomeAutomation().switchPowerState(device.getIdentifier(), on);
+    }
+
+    public void toggle(Device device) {
+        getHomeAutomation().togglePowerState(device.getIdentifier());
     }
 }

@@ -98,7 +98,7 @@ public class DeviceListActivity extends AppCompatActivity {
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
             holder.mIdView.setText(holder.mItem.getName());
-            holder.mContentView.setText(holder.mItem.toString());
+            holder.mContentView.setText(getDescription(holder.mItem));
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -106,7 +106,6 @@ public class DeviceListActivity extends AppCompatActivity {
                     Context context = v.getContext();
                     Intent intent = new Intent(context, DeviceDetailActivity.class);
                     intent.putExtra(DeviceDetailFragment.ARG_ITEM_ID, holder.mItem.getIdentifier());
-
                     context.startActivity(intent);
                 }
             });
@@ -135,6 +134,18 @@ public class DeviceListActivity extends AppCompatActivity {
                 return super.toString() + " '" + mContentView.getText() + "'";
             }
         }
+    }
+
+    private static String getDescription(Device device) {
+        return "ID: " + device.getId() + "\n"
+                + "Identifier: " + device.getIdentifier() + "\n"
+                + "Present: " + device.getPresent() + "\n"
+                + "Firmware: " + device.getFirmwareVersion() + "\n"
+                + "Temperature: " + device.getTemperature().getCelsius() + "°C\n"
+                + "Power: " + device.getPowerMeter().getPowerWatt() + "W\n"
+                + "Energy: " + device.getPowerMeter().getEnergyWattHours() + "Wh\n"
+                + "State: " + device.getSwitchState().isState() + "\n"
+                + "Lock: " + device.getSwitchState().isLock();
     }
 
 

@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.kaklakariada.fritzbox.model.homeautomation.Device;
@@ -62,7 +63,7 @@ public class DeviceDetailFragment extends Fragment {
         if (appBarLayout != null) {
             appBarLayout.setTitle(mItem != null ? mItem.getName() : "n.a.");
         }
-        ((TextView) getView().findViewById(R.id.device_detail)).setText(mItem.toString());
+        // ((TextView) getView().findViewById(R.id.device_detail)).setText(mItem.toString());
     }
 
 
@@ -72,12 +73,61 @@ public class DeviceDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.device_detail, container, false);
 
         if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.device_detail)).setText(mItem.toString());
+            //((TextView) rootView.findViewById(R.id.device_detail)).setText(mItem.toString());
         }
 
+        ((Button) rootView.findViewById(R.id.switch_on)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new SwitchPowerState(mItem, true).execute();
+            }
+        });
+        ((Button) rootView.findViewById(R.id.switch_off)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new SwitchPowerState(mItem, false).execute();
+            }
+        });
+        ((Button) rootView.findViewById(R.id.toggle_on_off)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new TogglePowerState(mItem).execute();
+            }
+        });
         return rootView;
     }
 
+    public class SwitchPowerState extends AsyncTask<Void, Void, Void> {
+
+        private final Device device;
+        private final boolean powerState;
+
+        public SwitchPowerState(Device device, boolean powerState) {
+            this.device = device;
+            this.powerState = powerState;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            fritzBoxService.switchState(device, powerState);
+            return null;
+        }
+    }
+
+    public class TogglePowerState extends AsyncTask<Void, Void, Void> {
+
+        private final Device device;
+
+        public TogglePowerState(Device device) {
+            this.device = device;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            fritzBoxService.toggle(device);
+            return null;
+        }
+    }
 
     public class GetDeviceTask extends AsyncTask<String, Void, Device> {
 

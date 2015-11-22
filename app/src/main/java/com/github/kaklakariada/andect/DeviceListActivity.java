@@ -139,13 +139,14 @@ public class DeviceListActivity extends AppCompatActivity {
     private static String getDescription(Device device) {
         return "ID: " + device.getId() + "\n"
                 + "Identifier: " + device.getIdentifier() + "\n"
-                + "Present: " + device.getPresent() + "\n"
+                + "Present: " + (device.isPresent() ? "present" : "not present") + "\n"
                 + "Firmware: " + device.getFirmwareVersion() + "\n"
                 + "Temperature: " + device.getTemperature().getCelsius() + "°C\n"
                 + "Power: " + device.getPowerMeter().getPowerWatt() + "W\n"
                 + "Energy: " + device.getPowerMeter().getEnergyWattHours() + "Wh\n"
-                + "State: " + device.getSwitchState().isState() + "\n"
-                + "Lock: " + device.getSwitchState().isLock();
+                + "State: " + (device.getSwitchState().isOn() ? "on" : "off") + "\n"
+                + "Lock: " + (device.getSwitchState().isLocked() ? "locked" : "not locked") + "\n"
+                + "Mode: " + device.getSwitchState().getMode();
     }
 
 

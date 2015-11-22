@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -44,6 +45,7 @@ public class DeviceListActivity extends AppCompatActivity {
 
     private SimpleItemRecyclerViewAdapter viewAdapter;
     private FritzBoxService fritzBoxService;
+    private SwipeRefreshLayout swipeContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +57,16 @@ public class DeviceListActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+
+
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new GetDeviceListTask().execute();
+            }
+        });
 
         viewAdapter = new SimpleItemRecyclerViewAdapter();
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.device_list);
@@ -85,8 +97,8 @@ public class DeviceListActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).getIdentifier());
-            holder.mContentView.setText(mValues.get(position).toString());
+            holder.mIdView.setText(holder.mItem.getName());
+            holder.mContentView.setText(holder.mItem.toString());
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -137,6 +149,7 @@ public class DeviceListActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final DeviceList devices) {
             //showProgress(false);
+            swipeContainer.setRefreshing(false);
             LOG.info("Found {} devices", devices.getDevices().size());
             viewAdapter.updateDeviceList(devices);
         }
@@ -144,6 +157,7 @@ public class DeviceListActivity extends AppCompatActivity {
         @Override
         protected void onCancelled() {
             LOG.info("Cancelled");
+            swipeContainer.setRefreshing(false);
             //showProgress(false);
         }
     }

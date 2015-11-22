@@ -3,21 +3,13 @@ package com.github.kaklakariada.andect;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
 
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,18 +19,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.github.kaklakariada.fritzbox.FritzBoxSession;
-import com.github.kaklakariada.fritzbox.http.HttpTemplate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A login screen that offers login via email/password.
  */
-public class ConnectActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class ConnectActivity extends AppCompatActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectActivity.class);
 
@@ -54,7 +42,7 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
     private View mProgressView;
     private View mLoginFormView;
 
-    private FritzBoxSession fritzBoxSession;
+    private FritzBoxService fritzBoxService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,14 +50,14 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
         setContentView(R.layout.activity_connect);
         // Set up the login form.
 
-        SharedPreferences preferences = getSharedPreferences("credentials", MODE_PRIVATE);
+        fritzBoxService = new FritzBoxService(this);
 
         mUrlView = (EditText) findViewById(R.id.fritzbox_url);
-        mUrlView.setText(preferences.getString("url","http://fritz.box"));
+        mUrlView.setText(fritzBoxService.getBaseUrl());
         mUsernameView = (EditText) findViewById(R.id.username);
-        mUsernameView.setText(preferences.getString("username", ""));
+        mUsernameView.setText(fritzBoxService.getUsername());
         mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setText(preferences.getString("password", ""));
+        mPasswordView.setText(fritzBoxService.getPassword());
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -126,9 +114,8 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            fritzBoxSession = new FritzBoxSession(new HttpTemplate(url));
             showProgress(true);
-            mAuthTask = new UserLoginTask(fritzBoxSession, username, password);
+            mAuthTask = new UserLoginTask(url, username, password);
             mAuthTask.execute((Void) null);
         }
     }
@@ -169,83 +156,40 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
         }
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this,
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
-
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE +
-                        " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                .CONTENT_ITEM_TYPE},
-
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        List<String> emails = new ArrayList<>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS));
-            cursor.moveToNext();
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
-
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    private class UserLoginTask extends AsyncTask<Void, Void, String> {
 
         private final String username;
         private final String password;
-        private final FritzBoxSession session;
+        private final String url;
 
-        UserLoginTask(FritzBoxSession session, String username, String password) {
-            this.session = session;
+        UserLoginTask(String url, String username, String password) {
+            this.url = url;
             this.username = username;
             this.password = password;
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected String doInBackground(Void... params) {
             try {
-                session.login(username, password);
+                return fritzBoxService.login(url, username, password);
             } catch (Exception e) {
                 LOG.warn("Login failed", e);
-                return false;
+                return null;
             }
-            LOG.info("Login successful");
-            return true;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final String sid) {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
-                gotoDeviceList(fritzBoxSession.getSid());
+            if (sid != null) {
+                fritzBoxService.storePreferences(url, username, password, sid);
+                startActivity(new Intent(ConnectActivity.this, DeviceListActivity.class));
                 return;
             }
             mUsernameView.setError(getString(R.string.error_incorrect_username_password));
@@ -258,17 +202,6 @@ public class ConnectActivity extends AppCompatActivity implements LoaderCallback
             mAuthTask = null;
             showProgress(false);
         }
-    }
-
-    private void gotoDeviceList(String sid) {
-        SharedPreferences.Editor editor = getSharedPreferences("credentials", MODE_PRIVATE).edit();
-        editor.putString("url", mUrlView.getText().toString());
-        editor.putString("username", mUsernameView.getText().toString());
-        editor.putString("password", mPasswordView.getText().toString());
-        editor.putString("sid", sid);
-        editor.commit();
-
-        startActivity(new Intent(this, DeviceListActivity.class));
     }
 }
 

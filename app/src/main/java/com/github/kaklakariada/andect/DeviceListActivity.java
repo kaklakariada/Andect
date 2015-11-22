@@ -42,24 +42,15 @@ public class DeviceListActivity extends AppCompatActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceListActivity.class);
 
-    private FritzBoxSession session = null;
     private SimpleItemRecyclerViewAdapter viewAdapter;
+    private FritzBoxService fritzBoxService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_list);
 
-        SharedPreferences preferences = getSharedPreferences("credentials", MODE_PRIVATE);
-
-        String baseUrl = preferences.getString("url", null);
-        String sid = preferences.getString("sid", null);
-
-        assert baseUrl != null;
-        assert sid != null;
-
-        LOG.info("Using base url {} and sid {}", baseUrl, sid);
-        session = new FritzBoxSession(new HttpTemplate(baseUrl), sid);
+        fritzBoxService = new FritzBoxService(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -140,7 +131,7 @@ public class DeviceListActivity extends AppCompatActivity {
         @Override
         protected DeviceList doInBackground(Void... params) {
             LOG.info("Fetching devices...");
-            return new HomeAutomation(session).getDeviceListInfos();
+            return fritzBoxService.getDeviceList();
         }
 
         @Override

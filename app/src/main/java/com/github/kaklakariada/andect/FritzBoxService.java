@@ -29,7 +29,7 @@ public class FritzBoxService {
         return getPreferences().getString("password", "");
     }
 
-    public String getSid() {
+    private String getSid() {
         return getPreferences().getString("sid", "");
     }
 

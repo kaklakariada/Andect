@@ -3,4 +3,6 @@
 .DS_Store
 /build
 /captures
+/app/.idea
+/app/app.iml
 /.idea

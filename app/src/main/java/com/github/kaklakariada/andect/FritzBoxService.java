@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import com.github.kaklakariada.fritzbox.FritzBoxSession;
 import com.github.kaklakariada.fritzbox.HomeAutomation;
 import com.github.kaklakariada.fritzbox.http.HttpTemplate;
+import com.github.kaklakariada.fritzbox.model.homeautomation.Device;
 import com.github.kaklakariada.fritzbox.model.homeautomation.DeviceList;
 
 public class FritzBoxService {
@@ -59,5 +60,9 @@ public class FritzBoxService {
     @NonNull
     private FritzBoxSession getAuthenticatedFritzboxSession() {
         return new FritzBoxSession(new HttpTemplate(getBaseUrl()), getSid());
+    }
+
+    public Device getDevice(String identifer) {
+        return getDeviceList().getDeviceByIdentifier(identifer);
     }
 }

@@ -44,7 +44,7 @@ public class FritzBoxService {
         editor.putString("username", username);
         editor.putString("password", password);
         editor.putString("sid", sid);
-        editor.commit();
+        editor.apply();
     }
 
     public String login(String url, String username, String password) {

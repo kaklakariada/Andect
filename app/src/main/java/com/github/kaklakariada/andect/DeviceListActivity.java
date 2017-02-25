@@ -19,9 +19,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-import com.github.kaklakariada.fritzbox.FritzBoxSession;
-import com.github.kaklakariada.fritzbox.HomeAutomation;
-import com.github.kaklakariada.fritzbox.http.HttpTemplate;
 import com.github.kaklakariada.fritzbox.model.homeautomation.Device;
 import com.github.kaklakariada.fritzbox.model.homeautomation.DeviceList;
 

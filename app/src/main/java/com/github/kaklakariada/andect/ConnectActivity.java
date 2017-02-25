@@ -18,7 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.github.kaklakariada.fritzbox.FritzBoxSession;
+import com.github.kaklakariada.fritzbox.HomeAutomation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +160,7 @@ public class ConnectActivity extends AppCompatActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    private class UserLoginTask extends AsyncTask<Void, Void, String> {
+    private class UserLoginTask extends AsyncTask<Void, Void, HomeAutomation> {
 
         private final String username;
         private final String password;
@@ -173,7 +173,7 @@ public class ConnectActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(Void... params) {
+        protected HomeAutomation doInBackground(Void... params) {
             try {
                 return fritzBoxService.login(url, username, password);
             } catch (Exception e) {
@@ -183,12 +183,12 @@ public class ConnectActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(final String sid) {
+        protected void onPostExecute(final HomeAutomation sid) {
             mAuthTask = null;
             showProgress(false);
 
             if (sid != null) {
-                fritzBoxService.storePreferences(url, username, password, sid);
+                fritzBoxService.storePreferences(url, username, password);
                 startActivity(new Intent(ConnectActivity.this, DeviceListActivity.class));
                 return;
             }

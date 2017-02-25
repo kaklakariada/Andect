@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import com.github.kaklakariada.fritzbox.FritzBoxSession;
 import com.github.kaklakariada.fritzbox.HomeAutomation;
 import com.github.kaklakariada.fritzbox.http.HttpTemplate;
 import com.github.kaklakariada.fritzbox.model.homeautomation.Device;
@@ -13,6 +12,7 @@ import com.github.kaklakariada.fritzbox.model.homeautomation.DeviceList;
 
 public class FritzBoxService {
     private final Context context;
+    private HomeAutomation homeAutomation;
 
     public FritzBoxService(Context context) {
         this.context = context;
@@ -30,27 +30,21 @@ public class FritzBoxService {
         return getPreferences().getString("password", "");
     }
 
-    private String getSid() {
-        return getPreferences().getString("sid", "");
-    }
-
     private SharedPreferences getPreferences() {
         return context.getSharedPreferences("credentials", Context.MODE_PRIVATE);
     }
 
-    public void storePreferences(String url, String username, String password, String sid) {
+    public void storePreferences(String url, String username, String password) {
         SharedPreferences.Editor editor = getPreferences().edit();
         editor.putString("url", url);
         editor.putString("username", username);
         editor.putString("password", password);
-        editor.putString("sid", sid);
         editor.apply();
     }
 
-    public String login(String url, String username, String password) {
-        FritzBoxSession fritzBoxSession = new FritzBoxSession(new HttpTemplate(url));
-        fritzBoxSession.login(username, password);
-        return fritzBoxSession.getSid();
+    public HomeAutomation login(String url, String username, String password) {
+        homeAutomation = HomeAutomation.connect(url, username, password);
+        return homeAutomation;
     }
 
     public DeviceList getDeviceList() {
@@ -59,12 +53,7 @@ public class FritzBoxService {
 
     @NonNull
     private HomeAutomation getHomeAutomation() {
-        return new HomeAutomation(getAuthenticatedFritzboxSession());
-    }
-
-    @NonNull
-    private FritzBoxSession getAuthenticatedFritzboxSession() {
-        return new FritzBoxSession(new HttpTemplate(getBaseUrl()), getSid());
+        return homeAutomation;
     }
 
     public Device getDevice(String identifer) {

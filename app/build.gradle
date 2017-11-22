@@ -20,19 +20,23 @@ android {
     lintOptions {
         warningsAsErrors true
     }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.github.kaklakariada:fritzbox-java-api:0.4.1') {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation('com.github.kaklakariada:fritzbox-java-api:0.4.1') {
         exclude group: 'stax'
         exclude group: 'xpp3'
     }
 
-    testCompile 'junit:junit:4.12'
-    compile 'org.slf4j:slf4j-android:1.7.24'
-    compile 'com.android.support:appcompat-v7:25.2.0'
-    compile 'com.android.support:design:25.2.0'
-    compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:recyclerview-v7:25.2.0'
+    testImplementation 'junit:junit:4.12'
+    implementation 'org.slf4j:slf4j-android:1.7.24'
+    implementation 'com.android.support:appcompat-v7:27.0.1'
+    implementation 'com.android.support:design:27.0.1'
+    implementation 'com.android.support:support-v4:27.0.1'
+    implementation 'com.android.support:recyclerview-v7:27.0.1'
 }
